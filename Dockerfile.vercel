@@ -1,0 +1,29 @@
+
+FROM dunglas/frankenphp:1-php8.3
+
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    bcmath \
+    gd \
+    zip \
+    intl \
+    opcache
+
+WORKDIR /app
+
+COPY . .
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction
+
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+
+EXPOSE 8080
