@@ -23,7 +23,7 @@ if (in_array($mode, ['all', 'student'], true)) {
     Route::post('/bantuan/{feedback}/baca', [FeedbackController::class, 'markRead'])->name('feedback.mark-read')->middleware('auth');
     Route::get('/notifikasi/unread-count', [FeedbackController::class, 'unreadCount'])->name('feedback.unread-count')->middleware('auth');
     Route::get('/jadwal', [ScheduleController::class, 'index'])->name('schedule.index');
-    Route::get('/katalog-website', [ProductShowcaseController::class, 'index'])->name('website.catalog');
+    Route::get('/katalog-website', fn () => redirect()->route('home'))->name('website.catalog');
 
     // Auth (guest only)
     Route::middleware('guest')->group(function () {

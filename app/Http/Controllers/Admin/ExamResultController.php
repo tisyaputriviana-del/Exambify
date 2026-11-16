@@ -57,25 +57,10 @@ class ExamResultController extends Controller
 
         $availableDates = $this->getAvailableExamDates();
 
-        // Kelompokkan hasil ujian: Jurusan -> Angkatan (X/XI/XII) -> Rombel (e.g. PPLG 1, 2)
+        // Kelompokkan hasil ujian berdasarkan jurusan
         $grouped = $attempts
             ->groupBy(fn ($a) => $a->student->department->name ?? 'Tanpa Jurusan')
-            ->sortKeys()
-            ->map(function ($byDept) {
-                return $byDept
-                    ->groupBy(fn ($a) => $a->student->class_level ?? '-')
-                    ->sortKeys()
-                    ->mapWithKeys(function ($byGrade, $level) {
-                        $roman = ['10' => 'Kelas X', '11' => 'Kelas XI', '12' => 'Kelas XII'][$level] ?? "Kelas {$level}";
-                        $bySection = $byGrade->groupBy(function ($a) {
-                            $code = $a->student->department->code ?? 'KLS';
-                            $sec = $a->student->class_section ?? '1';
-                            return "{$code} {$sec}";
-                        })->sortKeys();
-
-                        return [$roman => $bySection];
-                    });
-            });
+            ->sortKeys();
 
         return view('admin.results.index', compact(
             'attempts',
