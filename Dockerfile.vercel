@@ -1,6 +1,8 @@
 
 FROM dunglas/frankenphp:1-php8.3
 
+WORKDIR /app
+
 RUN install-php-extensions \
     pdo_mysql \
     mbstring \
@@ -10,20 +12,24 @@ RUN install-php-extensions \
     intl \
     opcache
 
-WORKDIR /app
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
-    --no-interaction
+    --no-interaction \
+    --no-progress
 
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+COPY Caddyfile /etc/caddy/Caddyfile
+
 ENV APP_ENV=production
 ENV APP_DEBUG=false
+ENV PORT=80
 
-EXPOSE 8080
+EXPOSE 80
+
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
