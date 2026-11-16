@@ -24,7 +24,7 @@
             <div>
                 <h3 class="font-bold text-lg text-white">Rekapitulasi Hasil Ujian Berdasarkan Jurusan, Tanggal & Jenis Ujian</h3>
                 <p class="text-xs text-slate-400 mt-1">
-                    Sesuaikan hasil ujian berdasarkan tanggal - bulan - tahun (misal rentang tanggal 1 - 7 November 2026) dan tipe ujian (UTS / UAS).
+                    Dikelompokkan per jurusan, lalu per angkatan, lalu per kelas — sesuai tanggal pelaksanaan ujian dan tipe ujian (UTS / UAS).
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 self-start lg:self-center">
@@ -230,131 +230,165 @@
             </div>
         @endif
 
-        <!-- Tabel Data Hasil Ujian -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-[#0B0F19] text-slate-400 uppercase font-semibold border-b border-[#1E293B]">
-                    <tr>
-                        <th class="p-3.5">Nama Peserta</th>
-                        <th class="p-3.5">Jurusan</th>
-                        <th class="p-3.5">Kelas</th>
-                        <th class="p-3.5">Mata Pelajaran</th>
-                        <th class="p-3.5">Jenis Ujian</th>
-                        <th class="p-3.5">Tanggal Ujian</th>
-                        <th class="p-3.5">Waktu Submit</th>
-                        <th class="p-3.5">Status</th>
-                        <th class="p-3.5">Nilai</th>
-                        <th class="p-3.5">Status Nilai</th>
-                        <th class="p-3.5 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#1E293B] text-slate-200">
-                    @forelse ($attempts as $a)
-                        <tr class="hover:bg-slate-800/20 transition">
-                            <td class="p-3.5 font-semibold text-white">
-                                {{ $a->student->name }}
-                                <div class="flex items-center gap-2 text-[10px] text-slate-400 font-normal mt-0.5">
-                                    <span>NISN: {{ $a->student->nisn }}</span>
-                                    @if($a->student->school)
-                                        <span class="text-slate-500">&middot;</span>
-                                        <span class="text-slate-400 flex items-center gap-1"><i class="fa-solid fa-school text-[9px] text-sky-400"></i>{{ $a->student->school->name }}</span>
-                                    @endif
+        <!-- Tabel Data Hasil Ujian (Dikelompokkan Per Jurusan, Angkatan & Kelas) -->
+        @forelse ($grouped as $deptName => $byAngkatan)
+            <div class="space-y-5 border border-[#1E293B] p-5 rounded-2xl bg-[#0B0F19]/40">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-sm"></i>
+                        <span>{{ $deptName }}</span>
+                    </h4>
+                    <span class="text-xs font-semibold text-slate-400 bg-[#131C2E] border border-[#1E293B] px-3 py-1 rounded-lg">
+                        Total: {{ $byAngkatan->flatten()->count() }} Peserta
+                    </span>
+                </div>
+
+                @foreach ($byAngkatan as $angkatanLabel => $byClass)
+                    <div class="pl-2 border-l-2 border-amber-500/30 space-y-3">
+                        <h5 class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">
+                            {{ $angkatanLabel }} <span class="text-slate-500 font-normal normal-case">({{ $byClass->flatten()->count() }} hasil ujian)</span>
+                        </h5>
+
+                        @foreach ($byClass as $sectionLabel => $rows)
+                            <div class="pl-3 border-l-2 border-[#1E293B] space-y-2">
+                                <h6 class="text-[11px] font-bold text-sky-400 uppercase flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chalkboard-user text-[10px]"></i>
+                                    <span>Kelas {{ $sectionLabel }}</span>
+                                    <span class="text-slate-500 font-normal normal-case">({{ $rows->count() }} peserta ujian)</span>
+                                </h6>
+                                <div class="overflow-x-auto rounded-xl border border-[#1E293B]">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-[#0B0F19] text-slate-400 uppercase font-semibold border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="p-3">Nama Peserta</th>
+                                                <th class="p-3">Jurusan</th>
+                                                <th class="p-3">Kelas</th>
+                                                <th class="p-3">Mata Pelajaran</th>
+                                                <th class="p-3">Jenis Ujian</th>
+                                                <th class="p-3">Tanggal Ujian</th>
+                                                <th class="p-3">Waktu Submit</th>
+                                                <th class="p-3">Status</th>
+                                                <th class="p-3">Nilai</th>
+                                                <th class="p-3">Status Nilai</th>
+                                                <th class="p-3 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-[#1E293B] text-slate-200">
+                                            @foreach ($rows as $a)
+                                                <tr class="hover:bg-slate-800/20 transition">
+                                                    <td class="p-3 font-semibold text-white">
+                                                        {{ $a->student->name }}
+                                                        <div class="flex items-center gap-2 text-[10px] text-slate-400 font-normal mt-0.5">
+                                                            <span>NISN: {{ $a->student->nisn }}</span>
+                                                            @if($a->student->school)
+                                                                <span class="text-slate-500">&middot;</span>
+                                                                <span class="text-slate-400 flex items-center gap-1"><i class="fa-solid fa-school text-[9px] text-sky-400"></i>{{ $a->student->school->name }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3">
+                                                        <span class="text-sky-400 font-bold bg-sky-950/40 border border-sky-800/40 px-2 py-0.5 rounded text-[11px]">
+                                                            {{ $a->student->department->code ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="p-3">{{ $a->student->class_str }}</td>
+                                                    <td class="p-3 font-medium text-slate-300">{{ $a->subject->name }}</td>
+                                                    
+                                                    <!-- Kolom Keterangan Jenis Ujian (UTS / UAS) -->
+                                                    <td class="p-3 whitespace-nowrap">
+                                                        @if ($a->display_exam_type === 'UTS')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30" title="Ujian Tengah Semester">
+                                                                <i class="fa-solid fa-bookmark mr-1 text-[9px]"></i> UTS
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30" title="Ujian Akhir Semester / Asesmen Sumatif">
+                                                                <i class="fa-solid fa-award mr-1 text-[9px]"></i> UAS / AS
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                    <!-- Kolom Tanggal Ujian (format DD-MM-YYYY) dengan tombol edit -->
+                                                    <td class="p-3 whitespace-nowrap">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-[#0B0F19] text-sky-300 border border-[#1E293B]">
+                                                                <i class="fa-regular fa-calendar mr-1.5 text-sky-400"></i>
+                                                                {{ $a->formatted_exam_date }}
+                                                            </span>
+                                                            <button type="button" 
+                                                                    onclick="openSingleDateModal({{ $a->id }}, '{{ addslashes($a->student->name) }}', '{{ $a->exam_date_input_value }}', '{{ $a->display_exam_type }}')" 
+                                                                    title="Ubah Tanggal / Jenis Ujian Siswa Ini" 
+                                                                    class="p-1 text-slate-400 hover:text-sky-400 transition text-xs">
+                                                                <i class="fa-solid fa-pen-to-square"></i>
+                                                            </button>
+                                                        </div>
+                                                        <span class="block text-[10px] text-slate-500 mt-0.5">{{ $a->formatted_exam_date_indo }}</span>
+                                                    </td>
+
+                                                    <td class="p-3 text-slate-400 whitespace-nowrap">
+                                                        {{ optional($a->submitted_at)->format('d-m-Y H:i') ?? '-' }}
+                                                    </td>
+
+                                                    <td class="p-3 whitespace-nowrap">
+                                                        @if ($a->status === 'selesai')
+                                                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-bold text-[10px] border border-emerald-500/20">Selesai</span>
+                                                        @else
+                                                            <span class="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded text-[10px] font-bold border border-amber-500/20 animate-pulse">
+                                                                Mengerjakan
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                    <td class="p-3 font-bold text-sky-400 text-sm">{{ $a->score ?? '-' }}</td>
+
+                                                    <td class="p-3 whitespace-nowrap">
+                                                        @if ($a->score_released)
+                                                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-bold text-[10px]">Dirilis</span>
+                                                        @else
+                                                            <span class="bg-slate-700/50 text-slate-400 px-2 py-0.5 rounded font-bold text-[10px]">Disembunyikan</span>
+                                                        @endif
+                                                    </td>
+
+                                                    <!-- Kolom Aksi: Tombol Ujian Selesai & Rilis Nilai -->
+                                                    <td class="p-3 text-center whitespace-nowrap space-x-2">
+                                                        @if ($a->status === 'berlangsung')
+                                                            <form method="POST" action="{{ route('admin.results.finish', $a) }}" class="inline" onsubmit="return confirm('Tandai ujian siswa {{ $a->student->name }} telah selesai dan hitung nilainya?');">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition inline-flex items-center gap-1 shadow-sm">
+                                                                    <i class="fa-solid fa-check"></i> Ujian Selesai
+                                                                </button>
+                                                            </form>
+                                                        @endif
+
+                                                        @if ($a->status === 'selesai' && ! $a->score_released)
+                                                            <form method="POST" action="{{ route('admin.results.release', $a) }}" class="inline">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" class="text-sky-400 hover:underline font-semibold text-xs">Rilis Nilai</button>
+                                                            </form>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </td>
-                            <td class="p-3.5">
-                                <span class="text-sky-400 font-bold bg-sky-950/40 border border-sky-800/40 px-2 py-0.5 rounded text-[11px]">
-                                    {{ $a->student->department->code ?? '-' }}
-                                </span>
-                            </td>
-                            <td class="p-3.5">{{ $a->student->class_str }}</td>
-                            <td class="p-3.5 font-medium text-slate-300">{{ $a->subject->name }}</td>
-                            
-                            <!-- Kolom Keterangan Jenis Ujian (UTS / UAS) -->
-                            <td class="p-3.5 whitespace-nowrap">
-                                @if ($a->display_exam_type === 'UTS')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30" title="Ujian Tengah Semester">
-                                        <i class="fa-solid fa-bookmark mr-1 text-[9px]"></i> UTS
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30" title="Ujian Akhir Semester / Asesmen Sumatif">
-                                        <i class="fa-solid fa-award mr-1 text-[9px]"></i> UAS / AS
-                                    </span>
-                                @endif
-                            </td>
-
-                            <!-- Kolom Tanggal Ujian (format DD-MM-YYYY) dengan tombol edit -->
-                            <td class="p-3.5 whitespace-nowrap">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-[#0B0F19] text-sky-300 border border-[#1E293B]">
-                                        <i class="fa-regular fa-calendar mr-1.5 text-sky-400"></i>
-                                        {{ $a->formatted_exam_date }}
-                                    </span>
-                                    <button type="button" 
-                                            onclick="openSingleDateModal({{ $a->id }}, '{{ addslashes($a->student->name) }}', '{{ $a->exam_date_input_value }}', '{{ $a->display_exam_type }}')" 
-                                            title="Ubah Tanggal / Jenis Ujian Siswa Ini" 
-                                            class="p-1 text-slate-400 hover:text-sky-400 transition text-xs">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                </div>
-                                <span class="block text-[10px] text-slate-500 mt-0.5">{{ $a->formatted_exam_date_indo }}</span>
-                            </td>
-
-                            <td class="p-3.5 text-slate-400 whitespace-nowrap">
-                                {{ optional($a->submitted_at)->format('d-m-Y H:i') ?? '-' }}
-                            </td>
-
-                            <td class="p-3.5 whitespace-nowrap">
-                                @if ($a->status === 'selesai')
-                                    <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-bold text-[10px] border border-emerald-500/20">Selesai</span>
-                                @else
-                                    <span class="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded text-[10px] font-bold border border-amber-500/20 animate-pulse">
-                                        Mengerjakan
-                                    </span>
-                                @endif
-                            </td>
-
-                            <td class="p-3.5 font-bold text-sky-400 text-sm">{{ $a->score ?? '-' }}</td>
-
-                            <td class="p-3.5 whitespace-nowrap">
-                                @if ($a->score_released)
-                                    <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-bold text-[10px]">Dirilis</span>
-                                @else
-                                    <span class="bg-slate-700/50 text-slate-400 px-2 py-0.5 rounded font-bold text-[10px]">Disembunyikan</span>
-                                @endif
-                            </td>
-
-                            <!-- Kolom Aksi: Tombol Ujian Selesai & Rilis Nilai -->
-                            <td class="p-3.5 text-center whitespace-nowrap space-x-2">
-                                @if ($a->status === 'berlangsung')
-                                    <form method="POST" action="{{ route('admin.results.finish', $a) }}" class="inline" onsubmit="return confirm('Tandai ujian siswa {{ $a->student->name }} telah selesai dan hitung nilainya?');">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition inline-flex items-center gap-1 shadow-sm">
-                                            <i class="fa-solid fa-check"></i> Ujian Selesai
-                                        </button>
-                                    </form>
-                                @endif
-
-                                @if ($a->status === 'selesai' && ! $a->score_released)
-                                    <form method="POST" action="{{ route('admin.results.release', $a) }}" class="inline">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="text-sky-400 hover:underline font-semibold text-xs">Rilis Nilai</button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="11" class="p-8 text-center text-slate-500">
-                                <i class="fa-regular fa-folder-open text-3xl mb-2 block opacity-40"></i>
-                                Belum ada hasil ujian yang sesuai dengan filter yang dipilih.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
+            </div>
+        @empty
+            <div class="text-center py-10 bg-[#0B0F19] rounded-2xl border border-[#1E293B]">
+                <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-slate-500 mb-2">
+                    <i class="fa-regular fa-folder-open text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-xs">Belum ada hasil ujian yang sesuai dengan filter yang dipilih.</p>
+                <a href="{{ route('admin.results.index', ['jurusan' => 'ALL']) }}" class="mt-3 inline-block px-3 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-xl">
+                    Lihat Semua Hasil Ujian
+                </a>
+            </div>
+        @endforelse
     </div>
 </section>
 

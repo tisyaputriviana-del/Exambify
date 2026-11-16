@@ -72,45 +72,58 @@
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 30px; text-align: center;">No</th>
-                <th>Nama Siswa</th>
-                <th>NISN</th>
-                <th>Sekolah</th>
-                <th>Jurusan</th>
-                <th>Kelas</th>
-                <th>Mata Pelajaran</th>
-                <th>Jenis</th>
-                <th>Tanggal Ujian</th>
-                <th>Waktu Submit</th>
-                <th>Status</th>
-                <th>Nilai</th>
-                <th>Status Nilai</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($attempts as $i => $a)
+    @php
+        $groupedPrint = $attempts->groupBy(fn ($a) => $a->student->department->name ?? 'Tanpa Jurusan')->sortKeys();
+    @endphp
+
+    @forelse ($groupedPrint as $deptName => $deptAttempts)
+        <h3 style="font-size: 13px; margin: 18px 0 6px 0; color: #1e3a8a; text-transform: uppercase;">
+            📁 Jurusan: {{ $deptName }} ({{ $deptAttempts->count() }} Peserta)
+        </h3>
+        <table>
+            <thead>
                 <tr>
-                    <td style="text-align: center;">{{ $i + 1 }}</td>
-                    <td><strong>{{ $a->student->name }}</strong></td>
-                    <td>{{ $a->student->nisn }}</td>
-                    <td>{{ $a->student->school->name ?? '-' }}</td>
-                    <td>{{ $a->student->department->code ?? '-' }}</td>
-                    <td>{{ $a->student->class_str }}</td>
-                    <td>{{ $a->subject->name }}</td>
-                    <td><span class="badge-type">{{ $a->display_exam_type }}</span></td>
-                    <td class="badge-date">{{ $a->formatted_exam_date }}</td>
-                    <td>{{ optional($a->submitted_at)->format('d-m-Y H:i') ?? '-' }}</td>
-                    <td>{{ ucfirst($a->status) }}</td>
-                    <td style="font-weight: bold;">{{ $a->score ?? '-' }}</td>
-                    <td>{{ $a->score_released ? 'Dirilis' : 'Disembunyikan' }}</td>
+                    <th style="width: 30px; text-align: center;">No</th>
+                    <th>Nama Siswa</th>
+                    <th>NISN</th>
+                    <th>Sekolah</th>
+                    <th>Jurusan</th>
+                    <th>Kelas</th>
+                    <th>Mata Pelajaran</th>
+                    <th>Jenis</th>
+                    <th>Tanggal Ujian</th>
+                    <th>Waktu Submit</th>
+                    <th>Status</th>
+                    <th>Nilai</th>
+                    <th>Status Nilai</th>
                 </tr>
-            @empty
+            </thead>
+            <tbody>
+                @foreach ($deptAttempts as $i => $a)
+                    <tr>
+                        <td style="text-align: center;">{{ $i + 1 }}</td>
+                        <td><strong>{{ $a->student->name }}</strong></td>
+                        <td>{{ $a->student->nisn }}</td>
+                        <td>{{ $a->student->school->name ?? '-' }}</td>
+                        <td>{{ $a->student->department->code ?? '-' }}</td>
+                        <td>{{ $a->student->class_str }}</td>
+                        <td>{{ $a->subject->name }}</td>
+                        <td><span class="badge-type">{{ $a->display_exam_type }}</span></td>
+                        <td class="badge-date">{{ $a->formatted_exam_date }}</td>
+                        <td>{{ optional($a->submitted_at)->format('d-m-Y H:i') ?? '-' }}</td>
+                        <td>{{ ucfirst($a->status) }}</td>
+                        <td style="font-weight: bold;">{{ $a->score ?? '-' }}</td>
+                        <td>{{ $a->score_released ? 'Dirilis' : 'Disembunyikan' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @empty
+        <table>
+            <tbody>
                 <tr><td colspan="13" style="text-align:center; padding:16px;">Tidak ada data hasil ujian yang sesuai dengan filter ini.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    @endforelse
 </body>
 </html>

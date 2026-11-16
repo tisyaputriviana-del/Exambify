@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\Announcement;
 use App\Models\CheatViolation;
 use App\Models\Department;
+use App\Models\ExamAttempt;
 use App\Models\Feedback;
 use App\Models\Question;
 use App\Models\QuestionOption;
@@ -23,13 +24,15 @@ class DatabaseSeeder extends Seeder
         $subjects = $this->seedSubjects($departments);
         $this->seedQuestions($subjects);
         $this->seedSchedule($subjects);
-        $student = $this->seedDemoStudent($departments);
+        $students = $this->seedDemoStudents($departments);
+        $student = $students['ahmad'] ?? $students[0];
         $admin = $this->seedDemoAdmin();
         $this->seedDemoSuperAdmin();
         $this->seedDemoDepartmentAdmin($departments);
         $this->seedCheatViolations($student);
         $this->seedFeedback($student);
         $this->seedAnnouncement($admin);
+        $this->seedDemoExamAttempts($students, $subjects);
         \App\Models\WebsiteProduct::ensureTableExists();
         \App\Models\LicensePayment::ensureTableExists();
     }
@@ -237,58 +240,138 @@ class DatabaseSeeder extends Seeder
 
     /**
      * @param  array<string, Department>  $departments
+     * @return array<string, Student>
      */
-    private function seedDemoStudent(array $departments): Student
+    private function seedDemoStudents(array $departments): array
     {
         $pplgDept = $departments['PPLG'] ?? $departments['RPL'];
         $tkjDept = $departments['TKJ'] ?? $departments['RPL'];
+        $akDept = $departments['AK'] ?? $departments['RPL'];
+        $mmDept = $departments['MM'] ?? $departments['RPL'];
+        $otkpDept = $departments['OTKP'] ?? $departments['RPL'];
+        $rplDept = $departments['RPL'] ?? $departments['PPLG'];
 
-        // Siswa Kelas X
-        Student::updateOrCreate(
+        $list = [];
+
+        // 1. PPLG
+        $list['tyza'] = Student::updateOrCreate(
             ['nisn' => '09872637'],
-            [
-                'name' => 'Tyza',
-                'department_id' => $pplgDept->id,
-                'class_level' => '10',
-                'class_section' => 3,
-                'password' => Hash::make('password123'),
-            ]
+            ['name' => 'Tyza', 'department_id' => $pplgDept->id, 'class_level' => '10', 'class_section' => 3, 'password' => Hash::make('password123')]
         );
-
-        Student::updateOrCreate(
-            ['nisn' => '075757575'],
-            [
-                'name' => 'Ucil',
-                'department_id' => $tkjDept->id,
-                'class_level' => '10',
-                'class_section' => 2,
-                'password' => Hash::make('password123'),
-            ]
-        );
-
-        // Siswa Kelas XI
-        Student::updateOrCreate(
+        $list['fajar'] = Student::updateOrCreate(
             ['nisn' => '0061234567'],
-            [
-                'name' => 'Fajar Pratama',
-                'department_id' => $pplgDept->id,
-                'class_level' => '11',
-                'class_section' => 2,
-                'password' => Hash::make('password123'),
-            ]
+            ['name' => 'Fajar Pratama', 'department_id' => $pplgDept->id, 'class_level' => '11', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+        $list['ahmad'] = Student::updateOrCreate(
+            ['nisn' => '0058291023'],
+            ['name' => 'Ahmad Siswa', 'department_id' => $pplgDept->id, 'class_level' => '12', 'class_section' => 1, 'password' => Hash::make('password123')]
         );
 
-        // Siswa Kelas XII
-        return Student::updateOrCreate(
-            ['nisn' => '0058291023'],
-            [
-                'name' => 'Ahmad Siswa',
-                'department_id' => $pplgDept->id,
-                'class_level' => '12',
-                'class_section' => 1,
-                'password' => Hash::make('password123'),
-            ]
+        // 2. TKJ
+        $list['ucil'] = Student::updateOrCreate(
+            ['nisn' => '075757575'],
+            ['name' => 'Ucil', 'department_id' => $tkjDept->id, 'class_level' => '10', 'class_section' => 2, 'password' => Hash::make('password123')]
         );
+        $list['budi'] = Student::updateOrCreate(
+            ['nisn' => '0063344556'],
+            ['name' => 'Budi Kurniawan', 'department_id' => $tkjDept->id, 'class_level' => '11', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['rizky'] = Student::updateOrCreate(
+            ['nisn' => '0054455667'],
+            ['name' => 'Rizky Ramadhan', 'department_id' => $tkjDept->id, 'class_level' => '12', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+
+        // 3. AK (Akuntansi dan Keuangan Lembaga)
+        $list['siti'] = Student::updateOrCreate(
+            ['nisn' => '0071122334'],
+            ['name' => 'Siti Nurhaliza', 'department_id' => $akDept->id, 'class_level' => '10', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['dewi'] = Student::updateOrCreate(
+            ['nisn' => '0062233445'],
+            ['name' => 'Dewi Sartika', 'department_id' => $akDept->id, 'class_level' => '11', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['putri'] = Student::updateOrCreate(
+            ['nisn' => '0053344556'],
+            ['name' => 'Putri Lestari', 'department_id' => $akDept->id, 'class_level' => '12', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+
+        // 4. MM (Multimedia / DKV)
+        $list['bagas'] = Student::updateOrCreate(
+            ['nisn' => '0074455667'],
+            ['name' => 'Bagas Prasetyo', 'department_id' => $mmDept->id, 'class_level' => '10', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['dian'] = Student::updateOrCreate(
+            ['nisn' => '0065566778'],
+            ['name' => 'Dian Safitri', 'department_id' => $mmDept->id, 'class_level' => '11', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+        $list['bayu'] = Student::updateOrCreate(
+            ['nisn' => '0056677889'],
+            ['name' => 'Bayu Pratama', 'department_id' => $mmDept->id, 'class_level' => '12', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+
+        // 5. OTKP (Otomatisasi Tata Kelola Perkantoran)
+        $list['rina'] = Student::updateOrCreate(
+            ['nisn' => '0077788990'],
+            ['name' => 'Rina Novita', 'department_id' => $otkpDept->id, 'class_level' => '10', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['anisa'] = Student::updateOrCreate(
+            ['nisn' => '0068899001'],
+            ['name' => 'Anisa Rahmawati', 'department_id' => $otkpDept->id, 'class_level' => '11', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['tari'] = Student::updateOrCreate(
+            ['nisn' => '0059900112'],
+            ['name' => 'Tari Anggraini', 'department_id' => $otkpDept->id, 'class_level' => '12', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+
+        // 6. RPL (Rekayasa Perangkat Lunak)
+        $list['dimas'] = Student::updateOrCreate(
+            ['nisn' => '0070011223'],
+            ['name' => 'Dimas Wahyu', 'department_id' => $rplDept->id, 'class_level' => '10', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+        $list['reza'] = Student::updateOrCreate(
+            ['nisn' => '0061122334'],
+            ['name' => 'Reza Aditya', 'department_id' => $rplDept->id, 'class_level' => '11', 'class_section' => 2, 'password' => Hash::make('password123')]
+        );
+        $list['gilang'] = Student::updateOrCreate(
+            ['nisn' => '0052233445'],
+            ['name' => 'Gilang Ramadhan', 'department_id' => $rplDept->id, 'class_level' => '12', 'class_section' => 1, 'password' => Hash::make('password123')]
+        );
+
+        return $list;
+    }
+
+    /**
+     * @param  array<string, Student>  $students
+     * @param  array<string, Subject>  $subjects
+     */
+    private function seedDemoExamAttempts(array $students, array $subjects): void
+    {
+        if (ExamAttempt::exists()) {
+            return;
+        }
+
+        $now = now();
+        $sampleSubjects = array_values($subjects);
+        $studentValues = array_values($students);
+
+        foreach ($studentValues as $index => $student) {
+            $subject = $sampleSubjects[$index % count($sampleSubjects)];
+            $score = rand(75, 95);
+            $type = ($index % 2 === 0) ? 'UTS' : 'UAS';
+            $daysAgo = ($index % 7);
+
+            ExamAttempt::create([
+                'student_id' => $student->id,
+                'subject_id' => $subject->id,
+                'status' => 'selesai',
+                'score' => $score,
+                'score_released' => true,
+                'exam_type' => $type,
+                'exam_date' => $now->copy()->subDays($daysAgo)->toDateString(),
+                'started_at' => $now->copy()->subDays($daysAgo)->setTime(8, 0),
+                'submitted_at' => $now->copy()->subDays($daysAgo)->setTime(9, 30),
+            ]);
+        }
     }
 
     private function seedDemoAdmin(): Admin

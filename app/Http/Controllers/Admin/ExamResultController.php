@@ -32,24 +32,21 @@ class ExamResultController extends Controller
 
         $attempts = $this->filteredAttempts($request);
 
-        // Ambil seluruh jurusan yang tersedia
-        $admin = Auth::guard('admin')->user();
+        // Pastikan 6 jurusan utama tersedia
+        Department::ensureDefaultDepartments();
+
+        // Ambil seluruh jurusan yang tersedia (sama seperti Data Peserta)
         $deptQuery = Department::orderBy('name');
-        if ($admin && $admin->school_id && ! $admin->is_super_admin && Schema::hasColumn('departments', 'school_id')) {
-            $deptQuery->where(function ($q) use ($admin) {
-                $q->where('school_id', $admin->school_id)
-                  ->orWhereNull('school_id');
-            });
-        }
         $departments = $deptQuery->get();
-        if ($departments->isEmpty()) {
-            $departments = Department::orderBy('name')->get();
-        }
+
         if ($departments->isEmpty()) {
             $departments = collect([
-                (object)['id' => 1, 'code' => 'PPLG', 'name' => 'Pengembangan Perangkat Lunak dan Gim', 'class_count' => 3],
-                (object)['id' => 2, 'code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak', 'class_count' => 3],
-                (object)['id' => 3, 'code' => 'TKJ', 'name' => 'Teknik Komputer dan Jaringan', 'class_count' => 2],
+                (object)['id' => 1, 'code' => 'AK', 'name' => 'Akuntansi dan Keuangan Lembaga', 'class_count' => 2],
+                (object)['id' => 2, 'code' => 'MM', 'name' => 'Multimedia / DKV', 'class_count' => 2],
+                (object)['id' => 3, 'code' => 'OTKP', 'name' => 'Otomatisasi Tata Kelola Perkantoran', 'class_count' => 2],
+                (object)['id' => 4, 'code' => 'PPLG', 'name' => 'Pengembangan Perangkat Lunak dan Gim', 'class_count' => 3],
+                (object)['id' => 5, 'code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak', 'class_count' => 3],
+                (object)['id' => 6, 'code' => 'TKJ', 'name' => 'Teknik Komputer dan Jaringan', 'class_count' => 2],
             ]);
         }
 
@@ -60,8 +57,29 @@ class ExamResultController extends Controller
 
         $availableDates = $this->getAvailableExamDates();
 
+        // Kelompokkan hasil ujian: Jurusan -> Angkatan (X/XI/XII) -> Rombel (e.g. PPLG 1, 2)
+        $grouped = $attempts
+            ->groupBy(fn ($a) => $a->student->department->name ?? 'Tanpa Jurusan')
+            ->sortKeys()
+            ->map(function ($byDept) {
+                return $byDept
+                    ->groupBy(fn ($a) => $a->student->class_level ?? '-')
+                    ->sortKeys()
+                    ->mapWithKeys(function ($byGrade, $level) {
+                        $roman = ['10' => 'Kelas X', '11' => 'Kelas XI', '12' => 'Kelas XII'][$level] ?? "Kelas {$level}";
+                        $bySection = $byGrade->groupBy(function ($a) {
+                            $code = $a->student->department->code ?? 'KLS';
+                            $sec = $a->student->class_section ?? '1';
+                            return "{$code} {$sec}";
+                        })->sortKeys();
+
+                        return [$roman => $bySection];
+                    });
+            });
+
         return view('admin.results.index', compact(
             'attempts',
+            'grouped',
             'departments',
             'departmentFilter',
             'classLevelFilter',
@@ -353,7 +371,10 @@ class ExamResultController extends Controller
         $admin = Auth::guard('admin')->user();
         if ($admin && $admin->school_id && ! $admin->is_super_admin) {
             $query->whereHas('student', function ($q) use ($admin) {
-                $q->where('school_id', $admin->school_id);
+                $q->where(function ($sub) use ($admin) {
+                    $sub->where('school_id', $admin->school_id)
+                        ->orWhereNull('school_id');
+                });
             });
         }
 

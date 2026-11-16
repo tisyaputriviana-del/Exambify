@@ -17,10 +17,6 @@
                 <a href="{{ route('home') }}" class="text-sm font-medium {{ request()->routeIs('home') ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400' }} transition">Beranda</a>
                 <a href="{{ route('departments.index') }}" class="text-sm font-medium {{ request()->routeIs('departments.*') || request()->routeIs('subjects.*') || request()->routeIs('exam.*') ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400' }} transition">Ujian</a>
                 <a href="{{ route('schedule.index') }}" class="text-sm font-medium {{ request()->routeIs('schedule.*') ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400' }} transition">Jadwal</a>
-                <a href="{{ route('website.catalog') }}" class="text-sm font-medium {{ request()->routeIs('website.catalog') ? 'text-purple-600 dark:text-purple-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400' }} transition flex items-center gap-1">
-                    <i class="fa-solid fa-crown text-[10px] text-purple-500"></i>
-                    <span>Katalog Website</span>
-                </a>
                 <a href="{{ route('about') }}" class="text-sm font-medium {{ request()->routeIs('about') ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400' }} transition">Tentang</a>
                 <a href="{{ route('contact') }}" class="text-sm font-medium {{ request()->routeIs('contact') ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400' }} transition">Bantuan</a>
             </div>

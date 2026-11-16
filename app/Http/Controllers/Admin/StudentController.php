@@ -24,15 +24,19 @@ class StudentController extends Controller
         $selectedGrade = $request->query('angkatan', 'ALL'); // 'ALL', '10', '11', '12'
         $selectedSection = $request->query('kelas', 'ALL');  // 'ALL', '1', '2', '3'
 
-        // 1. Ambil daftar semua jurusan
+        // 1. Ambil daftar semua jurusan (pastikan 6 jurusan utama tersedia)
+        Department::ensureDefaultDepartments();
         $deptQuery = Department::orderBy('name');
         $departments = $deptQuery->get();
 
         if ($departments->isEmpty()) {
             $departments = collect([
-                (object)['id' => 1, 'code' => 'PPLG', 'name' => 'Pengembangan Perangkat Lunak dan Gim', 'class_count' => 3],
-                (object)['id' => 2, 'code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak', 'class_count' => 3],
-                (object)['id' => 3, 'code' => 'TKJ', 'name' => 'Teknik Komputer dan Jaringan', 'class_count' => 2],
+                (object)['id' => 1, 'code' => 'AK', 'name' => 'Akuntansi dan Keuangan Lembaga', 'class_count' => 2],
+                (object)['id' => 2, 'code' => 'MM', 'name' => 'Multimedia / DKV', 'class_count' => 2],
+                (object)['id' => 3, 'code' => 'OTKP', 'name' => 'Otomatisasi Tata Kelola Perkantoran', 'class_count' => 2],
+                (object)['id' => 4, 'code' => 'PPLG', 'name' => 'Pengembangan Perangkat Lunak dan Gim', 'class_count' => 3],
+                (object)['id' => 5, 'code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak', 'class_count' => 3],
+                (object)['id' => 6, 'code' => 'TKJ', 'name' => 'Teknik Komputer dan Jaringan', 'class_count' => 2],
             ]);
         }
 
